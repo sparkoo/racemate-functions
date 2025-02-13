@@ -13,7 +13,6 @@ import * as logger from "firebase-functions/logger";
 import admin from "firebase-admin";
 import { racemate } from "racemate-msg";
 
-
 let adminApp: admin.app.App;
 
 if (admin.apps.length === 0) {
@@ -41,9 +40,11 @@ export const hello = onRequest(
 
     // For some reason, even if we're sending gzipped data, it comes uncompressed here
     const data = new Uint8Array(req.rawBody);
+    const lap = racemate.Lap.deserialize(data);
 
     const bucket = admin.storage().bucket();
-    const file = bucket.file(Date.now().toString() + ".dataa");
+    const filename = `laps/${lap.player_name}_${lap.player_surname}/${lap.track}_${lap.car_model}/${lap.timestamp}.lap`;
+    const file = bucket.file(filename);
     const writeStream = await file.createWriteStream({
       metadata: {
         contentType: "application/octet-stream",
@@ -55,9 +56,8 @@ export const hello = onRequest(
       writeStream.on("error", reject);
     });
     const [metadata] = await file.getMetadata();
-    logger.log("File saved: ", metadata);
+    logger.log("File saved", metadata);
 
-    const lap = racemate.Lap.deserialize(data);
     try {
       const docRef = await db.collection("laps").add({
         fileFireStorage: metadata.mediaLink,
@@ -65,7 +65,7 @@ export const hello = onRequest(
         track: lap.track,
         laptime: lap.lap_time_ms,
         car: lap.car_model,
-        timestamp: lap.timestamp
+        timestamp: lap.timestamp,
       });
       logger.log("Document added", docRef);
       res.status(200).send(`Document added: ${docRef}`);
