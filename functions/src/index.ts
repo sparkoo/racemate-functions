@@ -111,7 +111,8 @@ const storeMetadata = async (
     airTemp: lap.air_temp,
     roadTemp: lap.road_temp,
     sessionType: lap.session_type,
-    rainTypes: lap.rain_tyres
+    rainTypes: lap.rain_tyres,
+    lapNumber: lap.lap_number
   });
   logger.log("Document added", docRef);
   return docRef;
