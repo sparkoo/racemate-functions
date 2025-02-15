@@ -106,6 +106,12 @@ const storeMetadata = async (
     laptime: lap.lap_time_ms,
     car: lap.car_model,
     timestamp: lap.timestamp,
+    trackGrip: lap.track_grip_status,
+    weather: lap.rain_intensity,
+    airTemp: lap.air_temp,
+    roadTemp: lap.road_temp,
+    sessionType: lap.session_type,
+    rainTypes: lap.rain_tyres
   });
   logger.log("Document added", docRef);
   return docRef;
