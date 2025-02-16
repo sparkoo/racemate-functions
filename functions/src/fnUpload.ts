@@ -26,8 +26,9 @@ export const uploadFunction = onRequest(
     const data = new Uint8Array(req.rawBody);
     const lap = racemate.Lap.deserialize(data);
 
-    const filename = `laps/${lap.player_name}_${lap.player_surname}/${lap.track}_${lap.car_model}/${lap.timestamp}.lap`;
-    const metadata = await uploadFile(filename, data);
+    const filePath = `laps/${lap.player_name}_${lap.player_surname}/${lap.track}_${lap.car_model}/${lap.timestamp}.lap`;
+    const metadata = await uploadFile(filePath, data);
+    logger.log("file saved", metadata)
 
     const queryResult = await db
       .collection(LAP_COLLECTION)
@@ -35,7 +36,7 @@ export const uploadFunction = onRequest(
       .get();
     if (queryResult.size == 0) {
       try {
-        const docRef = await storeMetadata(metadata, lap);
+        const docRef = await storeMetadata(filePath, lap);
         logger.log("Document added", docRef);
         res.status(200).send(`Lap recorded: ${docRef}`);
       } catch (error) {
@@ -79,11 +80,11 @@ const uploadFile = async (
 };
 
 const storeMetadata = async (
-  metadata: FileMetadata,
+  filePath: string,
   lap: racemate.Lap
 ): Promise<DocumentReference> => {
   const docRef = await db.collection(LAP_COLLECTION).add({
-    fileFireStorage: metadata.mediaLink,
+    storagePath: filePath,
     name: lap.player_name + " " + lap.player_surname,
     track: lap.track,
     laptime: lap.lap_time_ms,
