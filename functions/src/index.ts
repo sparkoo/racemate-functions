@@ -7,7 +7,6 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-
 import admin from "firebase-admin";
 import { uploadFunction } from "./fnUpload.js";
 
@@ -22,5 +21,4 @@ if (admin.apps.length === 0) {
 export const db = adminApp.firestore();
 export const LAP_COLLECTION = "laps";
 
-
-export const unauthorizedUpload = uploadFunction
+export const lapUpload = uploadFunction;

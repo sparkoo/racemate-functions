@@ -12,6 +12,27 @@ export const uploadFunction = onRequest(
     region: ["europe-west3"],
   },
   async (req, res) => {
+    // Check if user is authenticated
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      logger.warn("Authentication failed: No valid auth token provided");
+      res.status(401).send("Unauthorized: Authentication required");
+      return;
+    }
+
+    // Extract the token
+    const idToken = authHeader.split("Bearer ")[1];
+
+    try {
+      // Verify the token
+      await admin.auth().verifyIdToken(idToken);
+      // Token is valid, user is authenticated
+    } catch (error) {
+      logger.warn("Authentication failed: Invalid token", error);
+      res.status(401).send("Unauthorized: Invalid authentication token");
+      return;
+    }
+
     if (req.method !== "POST") {
       res.status(403).send("Forbidden, accepting only POST request.");
       return;
@@ -28,7 +49,7 @@ export const uploadFunction = onRequest(
 
     const filePath = `laps/${lap.player_name}_${lap.player_surname}/${lap.track}_${lap.car_model}/${lap.timestamp}.lap`;
     const metadata = await uploadFile(filePath, data);
-    logger.log("file saved", metadata)
+    logger.log("file saved", metadata);
 
     const queryResult = await db
       .collection(LAP_COLLECTION)
@@ -49,8 +70,6 @@ export const uploadFunction = onRequest(
     }
   }
 );
-
-
 
 const uploadFile = async (
   filename: string,
@@ -96,7 +115,7 @@ const storeMetadata = async (
     roadTemp: lap.road_temp,
     sessionType: lap.session_type,
     rainTypes: lap.rain_tyres,
-    lapNumber: lap.lap_number
+    lapNumber: lap.lap_number,
   });
   logger.log("Document added", docRef);
   return docRef;
