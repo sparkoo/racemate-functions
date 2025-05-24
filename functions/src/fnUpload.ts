@@ -23,9 +23,10 @@ export const uploadFunction = onRequest(
     // Extract the token
     const idToken = authHeader.split("Bearer ")[1];
 
+    let authUserId;
     try {
       // Verify the token
-      await admin.auth().verifyIdToken(idToken);
+      authUserId = (await admin.auth().verifyIdToken(idToken)).uid;
       // Token is valid, user is authenticated
     } catch (error) {
       logger.warn("Authentication failed: Invalid token", error);
@@ -57,7 +58,7 @@ export const uploadFunction = onRequest(
       .get();
     if (queryResult.size == 0) {
       try {
-        const docRef = await storeMetadata(filePath, lap);
+        const docRef = await storeMetadata(filePath, lap, authUserId);
         logger.log("Document added", docRef);
         res.status(200).send(`Lap recorded: ${docRef}`);
       } catch (error) {
@@ -100,7 +101,8 @@ const uploadFile = async (
 
 const storeMetadata = async (
   filePath: string,
-  lap: racemate.Lap
+  lap: racemate.Lap,
+  authUserId: string
 ): Promise<DocumentReference> => {
   const docRef = await db.collection(LAP_COLLECTION).add({
     storagePath: filePath,
@@ -117,6 +119,7 @@ const storeMetadata = async (
     rainTypes: lap.rain_tyres,
     lapNumber: lap.lap_number,
     pollRate: lap.poll_rate,
+    userId: authUserId,
   });
   logger.log("Document added", docRef);
   return docRef;
