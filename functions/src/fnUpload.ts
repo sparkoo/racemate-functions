@@ -116,6 +116,7 @@ const storeMetadata = async (
     sessionType: lap.session_type,
     rainTypes: lap.rain_tyres,
     lapNumber: lap.lap_number,
+    pollRate: lap.poll_rate,
   });
   logger.log("Document added", docRef);
   return docRef;
